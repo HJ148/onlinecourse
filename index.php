@@ -4,11 +4,11 @@ require_once 'config/Database.php';
 
 // 2. Định nghĩa hàm tải tự động (Autoload) cho Models và Controllers
 function myAutoload($className) {
-    // Tên thư mục 'controller' và 'model' phải khớp với cấu trúc vật lý của bạn
-    if (file_exists('controller/' . $className . '.php')) {
-        require_once 'controller/' . $className . '.php';
-    } elseif (file_exists('model/' . $className . '.php')) {
-        require_once 'model/' . $className . '.php';
+    // Tên thư mục 'controllers' và 'models' phải khớp với cấu trúc vật lý của bạn
+    if (file_exists('controllers/' . $className . '.php')) {
+        require_once 'controllers/' . $className . '.php';
+    } elseif (file_exists('models/' . $className . '.php')) {
+        require_once 'models/' . $className . '.php';
     }
 }
 spl_autoload_register('myAutoload');
