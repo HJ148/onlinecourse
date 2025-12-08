@@ -1,38 +1,56 @@
 <?php
-// 1. Tải Cấu hình và Lớp Database
-require_once 'config/Database.php';
+// =======================================================
+// BƯỚC 1: CẤU HÌNH BAN ĐẦU
+// =======================================================
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// 2. Định nghĩa hàm tải tự động (Autoload) cho Models và Controllers
-function myAutoload($className) {
-    // Tên thư mục 'controller' và 'model' phải khớp với cấu trúc vật lý của bạn
-    if (file_exists('controller/' . $className . '.php')) {
-        require_once 'controller/' . $className . '.php';
-    } elseif (file_exists('model/' . $className . '.php')) {
-        require_once 'model/' . $className . '.php';
-    }
+// Khởi tạo session ngay từ đầu
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
 }
-spl_autoload_register('myAutoload');
 
-// 3. Phân tích URL (Routing)
-$url = $_GET['url'] ?? 'home/index'; 
-$url = explode('/', filter_var(trim($url, '/'), FILTER_SANITIZE_URL));
+// KHAI BÁO THƯ MỤC GỐC (Đường dẫn tuyệt đối đến thư mục THUCHANHSO2)
+define('APP_ROOT', __DIR__);
 
-$controllerName = ucfirst($url[0]) . 'Controller'; 
-$actionName = $url[1] ?? 'index';                  
-$params = array_slice($url, 2);                    
+// =======================================================
+// BƯỚC 2: KHAI BÁO CÁC FILE CẦN THIẾT
+// =======================================================
+// Sử dụng đường dẫn tương đối với index.php (tương đối với thư mục gốc)
+require_once APP_ROOT . "/model/User.php";
+require_once APP_ROOT . "/controller/AuthController.php";
 
-// 4. Khởi tạo và Gọi Action
-if (class_exists($controllerName)) {
-    $controller = new $controllerName();
+// =======================================================
+// BƯỚC 3: XỬ LÝ ACTION TỪ URL
+// =======================================================
+$auth = new AuthController();
+$action = $_GET['action'] ?? 'login';
+
+switch ($action) {
+    case 'login':
+        $auth->login();
+        break;
     
-    if (method_exists($controller, $actionName)) {
-        call_user_func_array([$controller, $actionName], $params);
-    } else {
-        header("HTTP/1.0 404 Not Found");
-        die("Error 404: Action not found.");
-    }
-} else {
-    header("HTTP/1.0 404 Not Found");
-    die("Error 404: Controller not found.");
+    case 'handleLogin':
+        $auth->handleLogin();
+        break;
+    
+    case 'register':
+        $auth->register();
+        break;
+    
+    case 'handleRegister':
+        $auth->handleRegister();
+        break;
+    
+    case 'logout':
+        $auth->logout();
+        break;
+
+    default:
+        $auth->login();
+        break;
 }
+
 ?>
