@@ -18,7 +18,7 @@
                 <?php if (isset($_SESSION['user']) && $_SESSION['user']['role'] == 'student'): ?>
                      <li><a href="/onlinecourse/student/dashboard">Khóa học mới</a></li>
                 <?php else: ?>
-                     <li><a href="/onlinecourse/course/index">Khóa học</a></li>
+                     <li><a href="/onlinecourse/course/index">Khóa học  </a></li>
                 <?php endif; ?>
 
                 <?php if (isset($_SESSION['user'])): ?>
