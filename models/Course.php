@@ -1,25 +1,53 @@
 <?php
-// require_once '../config/Database.php'; // Điều chỉnh đường dẫn theo cấu trúc autoload/include thực tế
+require_once 'config/Database.php';
 
 class Course {
     private $conn;
     private $table = 'courses';
 
     public function __construct() {
-        $this->conn = Database::connect(); // Sử dụng kết nối từ Database.php
+        $this->conn = Database::connect(); 
     }
 
     /**
-     * Lấy danh sách khóa học của một giảng viên (instructor_id)
+     * 1. Lấy tất cả khóa học (Dùng cho Student Dashboard)
+     * Sửa: u.name -> u.fullname
+     */
+    public function getAll($keyword = '') {
+        $query = "SELECT c.*, u.username as instructor_name, cat.name as category_name
+                  FROM " . $this->table . " c
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  WHERE 1=1";
+        
+        if (!empty($keyword)) {
+            $query .= " AND c.title LIKE :keyword";
+        }
+        
+        $query .= " ORDER BY c.id DESC";
+
+        $stmt = $this->conn->prepare($query);
+
+        if (!empty($keyword)) {
+            $kw = "%$keyword%";
+            $stmt->bindParam(":keyword", $kw);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * 2. Lấy khóa học của Giảng viên
+     * Sửa: u.name -> u.fullname
      */
     public function findByInstructor($instructor_id) {
         $query = 'SELECT c.*, u.fullname as instructor_name FROM ' . $this->table . ' c
                   LEFT JOIN users u ON c.instructor_id = u.id
                   WHERE c.instructor_id = :instructor_id 
-                  ORDER BY c.created_at DESC';
+                  ORDER BY c.id DESC';
         
         $stmt = $this->conn->prepare($query);
-        // Ngăn chặn SQL Injection
         $stmt->bindParam(':instructor_id', $instructor_id, PDO::PARAM_INT);
         $stmt->execute();
         
@@ -27,8 +55,24 @@ class Course {
     }
 
     /**
-     * Tạo khóa học mới
+     * 3. Lấy chi tiết 1 khóa học
+     * Sửa: u.name -> u.fullname
      */
+    public function getById($id) {
+        $query = "SELECT c.*, u.fullname as instructor_name, cat.name as category_name
+                  FROM " . $this->table . " c
+                  LEFT JOIN categories cat ON c.category_id = cat.id
+                  LEFT JOIN users u ON c.instructor_id = u.id
+                  WHERE c.id = :id LIMIT 1";
+                  
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // --- CÁC HÀM CREATE, UPDATE, DELETE (GIỮ NGUYÊN) ---
+
     public function create($data) {
         $query = 'INSERT INTO ' . $this->table . ' 
                   (title, description, instructor_id, category_id, price, duration_weeks, level, image) 
@@ -36,22 +80,22 @@ class Course {
         
         $stmt = $this->conn->prepare($query);
 
-        // Bind data
         $stmt->bindParam(':title', $data['title']);
         $stmt->bindParam(':description', $data['description']);
         $stmt->bindParam(':instructor_id', $data['instructor_id']);
         $stmt->bindParam(':category_id', $data['category_id']);
         $stmt->bindParam(':price', $data['price']);
-        $stmt->bindParam(':duration_weeks', $data['duration_weeks']);
-        $stmt->bindParam(':level', $data['level']);
+        
+        $weeks = $data['duration_weeks'] ?? 0;
+        $lvl = $data['level'] ?? 'Cơ bản';
+        
+        $stmt->bindParam(':duration_weeks', $weeks);
+        $stmt->bindParam(':level', $lvl);
         $stmt->bindParam(':image', $data['image']);
 
         return $stmt->execute();
     }
-    
-    /**
-     * Cập nhật khóa học
-     */
+
     public function update($id, $data) {
         $query = 'UPDATE ' . $this->table . ' 
                   SET title = :title, description = :description, category_id = :category_id, 
@@ -64,17 +108,18 @@ class Course {
         $stmt->bindParam(':description', $data['description']);
         $stmt->bindParam(':category_id', $data['category_id']);
         $stmt->bindParam(':price', $data['price']);
-        $stmt->bindParam(':duration_weeks', $data['duration_weeks']);
-        $stmt->bindParam(':level', $data['level']);
+        
+        $weeks = $data['duration_weeks'] ?? 0;
+        $lvl = $data['level'] ?? 'Cơ bản';
+        
+        $stmt->bindParam(':duration_weeks', $weeks);
+        $stmt->bindParam(':level', $lvl);
         $stmt->bindParam(':image', $data['image']);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
         return $stmt->execute();
     }
 
-    /**
-     * Xóa khóa học
-     */
     public function delete($id) {
         $query = 'DELETE FROM ' . $this->table . ' WHERE id = :id';
         $stmt = $this->conn->prepare($query);
@@ -82,42 +127,9 @@ class Course {
         return $stmt->execute();
     }
     
-    /** Lấy tất cả khóa học */
-    public function findAll() {
-        $query = "SELECT c.*, u.fullname as instructor_name, cat.name as category_name
-                  FROM $this->table c
-                  LEFT JOIN users u ON c.instructor_id = u.id
-                  LEFT JOIN categories cat ON c.category_id = cat.id
-                  ORDER BY c.created_at DESC";
-        return $this->conn->query($query)->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /** Tìm khóa học theo ID */
+    // Alias cho getById
     public function findById($id) {
-        $query = "SELECT * FROM $this->table WHERE id = :id LIMIT 1";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":id", $id);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    /** Tìm khóa học theo danh mục */
-    public function findByCategory($category_id) {
-        $query = "SELECT * FROM $this->table WHERE category_id = :category_id";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":category_id", $category_id);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /** Tìm kiếm khóa học */
-    public function search($keyword) {
-        $query = "SELECT * FROM $this->table WHERE title LIKE :keyword";
-        $stmt = $this->conn->prepare($query);
-        $kw = "%$keyword%";
-        $stmt->bindParam(":keyword", $kw);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $this->getById($id);
     }
 }
 ?>

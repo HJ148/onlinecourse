@@ -1,0 +1,42 @@
+/* RESET & COMMON */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { background-color: #f5f7fa; color: #333; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+
+/* HEADER */
+header { background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 15px 0; position: sticky; top: 0; z-index: 1000; }
+.navbar { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-size: 24px; font-weight: 700; color: #2563eb; }
+.nav-menu { display: flex; gap: 20px; align-items: center; }
+.nav-menu a { font-weight: 500; color: #64748b; transition: 0.3s; }
+.nav-menu a:hover { color: #2563eb; }
+.btn-primary { background: #2563eb; color: #fff !important; padding: 8px 20px; border-radius: 6px; transition: 0.3s; }
+.btn-primary:hover { background: #1d4ed8; }
+
+/* HERO SECTION (Trang chủ) */
+.hero { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 60px 0; text-align: center; margin-bottom: 40px; }
+.hero h1 { font-size: 3em; margin-bottom: 15px; }
+.hero p { font-size: 1.2em; opacity: 0.9; margin-bottom: 25px; }
+
+/* COURSE GRID (Danh sách khóa học) */
+.section-title { font-size: 24px; font-weight: bold; margin-bottom: 20px; border-left: 5px solid #2563eb; padding-left: 15px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 50px; }
+.card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
+.card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
+.card-img { height: 180px; background: #e2e8f0; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 40px; }
+.card-body { padding: 20px; }
+.card-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+.card-meta { color: #64748b; font-size: 0.9em; margin-bottom: 15px; display: flex; justify-content: space-between; }
+.price { color: #ef4444; font-weight: bold; font-size: 1.1em; }
+
+/* FORM (Login) */
+.auth-box { max-width: 400px; margin: 50px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+.form-control { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+.form-control:focus { outline: none; border-color: #2563eb; }
+
+/* FOOTER */
+footer { background: #1e293b; color: #94a3b8; text-align: center; padding: 20px 0; margin-top: auto; }

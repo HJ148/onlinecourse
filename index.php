@@ -1,38 +1,61 @@
 <?php
-// 1. Tải Cấu hình và Lớp Database
+session_start();
+
+// 1. Giả lập đăng nhập (Code test - sau này làm xong Login thì xóa đoạn if này đi)
+if (!isset($_SESSION['user'])) {
+    $_SESSION['user'] = [
+        'id' => 1,          
+        'name' => 'Học Viên Test',
+        'role' => 'student' // Hoặc đổi thành 'instructor' để test giảng viên
+    ];
+}
+
+// 2. Load file cấu hình Database ngay đầu tiên
+// (Để đảm bảo class Database luôn sẵn sàng cho các Model sử dụng)
 require_once 'config/Database.php';
 
-// 2. Định nghĩa hàm tải tự động (Autoload) cho Models và Controllers
+// 3. Hàm tự động tải file (Autoload) - ĐÃ NÂNG CẤP
 function myAutoload($className) {
-    // Tên thư mục 'controllers' và 'models' phải khớp với cấu trúc vật lý của bạn
+    // Kiểm tra trong thư mục controllers
     if (file_exists('controllers/' . $className . '.php')) {
         require_once 'controllers/' . $className . '.php';
-    } elseif (file_exists('models/' . $className . '.php')) {
+    } 
+    // Kiểm tra trong thư mục models
+    elseif (file_exists('models/' . $className . '.php')) {
         require_once 'models/' . $className . '.php';
+    }
+    // Kiểm tra trong thư mục helpers (QUAN TRỌNG: để load AuthHelper)
+    elseif (file_exists('helpers/' . $className . '.php')) {
+        require_once 'helpers/' . $className . '.php';
     }
 }
 spl_autoload_register('myAutoload');
 
-// 3. Phân tích URL (Routing)
-$url = $_GET['url'] ?? 'home/index'; 
-$url = explode('/', filter_var(trim($url, '/'), FILTER_SANITIZE_URL));
+// 4. Phân tích URL (Routing)
+$url = $_GET['url'] ?? 'home/index';
+$url = rtrim($url, '/');
+$url = filter_var($url, FILTER_SANITIZE_URL);
+$url = explode('/', $url);
 
-$controllerName = ucfirst($url[0]) . 'Controller'; 
-$actionName = $url[1] ?? 'index';                  
-$params = array_slice($url, 2);                    
+// Xác định Controller (Viết hoa chữ cái đầu: home -> HomeController)
+$controllerName = isset($url[0]) ? ucfirst($url[0]) . 'Controller' : 'HomeController';
+$actionName = isset($url[1]) ? $url[1] : 'index';
+$params = array_slice($url, 2);
 
-// 4. Khởi tạo và Gọi Action
-if (class_exists($controllerName)) {
+// 5. Kiểm tra và chạy Controller
+if (file_exists('controllers/' . $controllerName . '.php')) {
+    // Vì đã có Autoload ở trên, ta chỉ cần khởi tạo class
     $controller = new $controllerName();
     
     if (method_exists($controller, $actionName)) {
+        // Gọi hàm và truyền tham số
         call_user_func_array([$controller, $actionName], $params);
     } else {
-        header("HTTP/1.0 404 Not Found");
-        die("Error 404: Action not found.");
+        // Có Controller nhưng không có hàm (Action)
+        echo "Lỗi 404: Không tìm thấy Action '$actionName' trong $controllerName";
     }
 } else {
-    header("HTTP/1.0 404 Not Found");
-    die("Error 404: Controller not found.");
+    // Không tìm thấy file Controller
+    echo "Lỗi 404: Không tìm thấy Controller '$controllerName'";
 }
 ?>
